@@ -1,6 +1,14 @@
+
 /**
  * ln-select Component
  * Initializes Tom Select on select elements with data-ln-select attribute
+ *
+ * NOTE (UMD mode): This build expects Tom Select to be available as a global
+ * `window.TomSelect` (UMD/CDN). Include Tom Select before this script, for
+ * example via CDN:
+ *
+ * <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+ * <script src="/path/to/ln-select/ln-select.js"></script>
  *
  * Usage:
  * <select data-ln-select>...</select>
