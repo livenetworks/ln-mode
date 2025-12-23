@@ -3,7 +3,7 @@
 	const DOM_ATTRIBUTE = 'lnAjax';
 
 	// If component already defined, return
-	if (window[DOM_ATTRIBUTE] != undefined || window[DOM_ATTRIBUTE] != null) {
+	if (window[DOM_ATTRIBUTE]) {
 		return;
 	}
 
@@ -127,7 +127,16 @@
 
 		// Make the fetch request and handle response
 		fetch(url, options)
-			.then(response => response.json())
+			.then(response => {
+				if (!response.ok) {
+					return response.text().then(text => {
+						let parsed;
+						try { parsed = JSON.parse(text); } catch (e) { parsed = { message: text || response.statusText }; }
+						throw { response: response, body: parsed };
+					});
+				}
+				return response.json();
+			})
 			.then(data => {
 				// Update document title if provided
 				if (data.title) {
@@ -173,7 +182,15 @@
 			})
 			.catch(error => {
 				console.error('AJAX error:', error);
-				element.classList.remove('ln-ajax--loading');
+				try { element.classList.remove('ln-ajax--loading'); } catch (e) {}
+
+				// Try to show toast if available
+				if (window.lnToast) {
+					const msg = error && error.body && (error.body.message || error.body.error) ? (error.body.message || error.body.error) : (error.message || 'Network error');
+					try {
+						window.lnToast.enqueue({ type: 'error', title: 'Request failed', message: msg });
+					} catch (e) { /* ignore toast errors */ }
+				}
 
 				// Execute callback on error too
 				if (callback) {
@@ -211,12 +228,13 @@
 				if (mutation.type == 'childList') {
 					mutation.addedNodes.forEach(function (item) {
 						if (item.nodeType === 1) {
-							// Check if the added node itself has data-ln-ajax
-							constructor(item);
+							if (item.hasAttribute && item.hasAttribute(DOM_SELECTOR)) {
+								constructor(item);
+							}
 
-							// Also check for any data-ln-ajax elements within the added node
-							if (item.hasAttribute && !item.hasAttribute(DOM_SELECTOR)) {
-								let ajaxElements = item.querySelectorAll('[' + DOM_SELECTOR + ']');
+							// Also initialize any child elements with the attribute
+							if (item.querySelectorAll) {
+								let ajaxElements = item.querySelectorAll('[' + DOM_SELECTOR + ']') || [];
 								ajaxElements.forEach(function (element) {
 									constructor(element);
 								});
