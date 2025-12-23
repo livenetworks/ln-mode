@@ -7,10 +7,9 @@
  * <select data-ln-select='{"create": true, "maxItems": 3}'>...</select>
  */
 
-import TomSelect from 'tom-select';
-
 (function () {
 	'use strict';
+
 
 	const instances = new WeakMap();
 
@@ -57,18 +56,22 @@ import TomSelect from 'tom-select';
 		// Merge configurations
 		const finalConfig = { ...defaultConfig, ...config };
 
-		// Initialize Tom Select
+		// Initialize Tom Select (expects global TomSelect UMD/CND)
 		try {
-			const tomSelect = new TomSelect(element, finalConfig);
+			if (typeof window.TomSelect === 'undefined') {
+				console.warn('TomSelect not found on window. Include Tom Select UMD script before ln-select.');
+				return;
+			}
+
+			const tomSelect = new window.TomSelect(element, finalConfig);
 			instances.set(element, tomSelect);
 
-			// Handle form reset
+			// Handle form reset (do not remove all options)
 			const form = element.closest('form');
 			if (form) {
 				form.addEventListener('reset', () => {
 					setTimeout(() => {
 						tomSelect.clear();
-						tomSelect.clearOptions();
 						tomSelect.sync();
 					}, 0);
 				});
