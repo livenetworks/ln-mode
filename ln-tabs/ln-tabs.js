@@ -3,7 +3,7 @@
 	const DOM_SELECTOR = "data-ln-tabs";
 	const DOM_ATTRIBUTE = "lnTabs";
 
-	if (window[DOM_ATTRIBUTE]) return;
+	if (window[DOM_ATTRIBUTE] !== undefined && window[DOM_ATTRIBUTE] !== null) return;
 
 	function constructor(domRoot = document.body) { _findElements(domRoot); }
 

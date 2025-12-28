@@ -1,23 +1,16 @@
-
 /**
  * ln-select Component
  * Initializes Tom Select on select elements with data-ln-select attribute
- *
- * NOTE (UMD mode): This build expects Tom Select to be available as a global
- * `window.TomSelect` (UMD/CDN). Include Tom Select before this script, for
- * example via CDN:
- *
- * <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
- * <script src="/path/to/ln-select/ln-select.js"></script>
  *
  * Usage:
  * <select data-ln-select>...</select>
  * <select data-ln-select='{"create": true, "maxItems": 3}'>...</select>
  */
 
+import TomSelect from 'tom-select';
+
 (function () {
 	'use strict';
-
 
 	const instances = new WeakMap();
 
@@ -64,22 +57,18 @@
 		// Merge configurations
 		const finalConfig = { ...defaultConfig, ...config };
 
-		// Initialize Tom Select (expects global TomSelect UMD/CND)
+		// Initialize Tom Select
 		try {
-			if (typeof window.TomSelect === 'undefined') {
-				console.warn('TomSelect not found on window. Include Tom Select UMD script before ln-select.');
-				return;
-			}
-
-			const tomSelect = new window.TomSelect(element, finalConfig);
+			const tomSelect = new TomSelect(element, finalConfig);
 			instances.set(element, tomSelect);
 
-			// Handle form reset (do not remove all options)
+			// Handle form reset
 			const form = element.closest('form');
 			if (form) {
 				form.addEventListener('reset', () => {
 					setTimeout(() => {
 						tomSelect.clear();
+						tomSelect.clearOptions();
 						tomSelect.sync();
 					}, 0);
 				});

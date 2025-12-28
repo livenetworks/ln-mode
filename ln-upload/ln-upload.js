@@ -6,7 +6,7 @@
 	const CONTEXT_ATTR = 'data-ln-upload-context';
 
 	// If component already defined, return
-	if (window[DOM_ATTRIBUTE]) {
+	if (window[DOM_ATTRIBUTE] != undefined || window[DOM_ATTRIBUTE] != null) {
 		return;
 	}
 
@@ -62,28 +62,9 @@
 	 */
 	function _isValidFile(file, acceptString) {
 		if (!acceptString) return true;
-		const allowed = acceptString.split(',').map(function (s) { return s.trim().toLowerCase(); }).filter(Boolean);
-		const nameExt = '.' + _getExtension(file.name);
-		const mime = (file.type || '').toLowerCase();
-
-		for (let a of allowed) {
-			if (!a) continue;
-			if (a.startsWith('.')) {
-				if (a === nameExt) return true;
-			} else if (a.endsWith('/*')) {
-				// mime wildcard like image/*
-				const prefix = a.split('/')[0];
-				if (mime.startsWith(prefix + '/')) return true;
-			} else if (a.includes('/')) {
-				// exact mime type
-				if (mime === a) return true;
-			} else {
-				// extension without dot
-				if (a === nameExt.replace('.', '')) return true;
-			}
-		}
-
-		return false;
+		const ext = '.' + _getExtension(file.name);
+		const allowed = acceptString.split(',').map(function (s) { return s.trim().toLowerCase(); });
+		return allowed.includes(ext.toLowerCase());
 	}
 
 	/**
@@ -112,14 +93,7 @@
 		const input = container.querySelector('input[type="file"]');
 		const acceptString = container.getAttribute(ACCEPT_ATTR) || '';
 		const uploadUrl = container.getAttribute(DOM_SELECTOR) || '/files/upload';
-		const deleteUrlTemplate = container.getAttribute('data-ln-upload-delete') || '/files/{id}';
 		const uploadContext = container.getAttribute(CONTEXT_ATTR) || '';
-
-		// Basic element sanity checks
-		if (!zone || !list || !input) {
-			console.warn('ln-upload: missing required elements (zone/list/input) in container', container);
-			return;
-		}
 
 		// Store uploaded file IDs (from server) mapped by local id
 		const uploadedFiles = new Map();
@@ -322,8 +296,7 @@
 				item.classList.add('ln-upload__item--deleting');
 			}
 
-			const deleteUrl = deleteUrlTemplate.replace('{id}', fileData.serverId);
-			fetch(deleteUrl, {
+			fetch('/files/' + fileData.serverId, {
 				method: 'DELETE',
 				headers: {
 					'X-CSRF-TOKEN': getCsrfToken(),

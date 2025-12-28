@@ -3,24 +3,12 @@
 	const DOM_ATTRIBUTE = 'lnNav';
 
 	// Early exit if already defined
-	if (window[DOM_ATTRIBUTE]) {
+	if (window[DOM_ATTRIBUTE] != undefined || window[DOM_ATTRIBUTE] != null) {
 		return;
 	}
 
 	// WeakMap to store nav instances
 	const navInstances = new WeakMap();
-
-	// Ensure history.pushState is patched only once to emit a custom event
-	if (!history._lnPatched) {
-		(function() {
-			const originalPushState = history.pushState;
-			history.pushState = function() {
-				originalPushState.apply(history, arguments);
-				try { window.dispatchEvent(new Event('ln:pushstate')); } catch (e) { /* ignore */ }
-			};
-			history._lnPatched = true;
-		})();
-	}
 
 	function constructor(navElement) {
 		// Validate navElement
@@ -50,8 +38,15 @@
 		};
 		window.addEventListener('popstate', popstateHandler);
 
-		// Listen for pushState-like events emitted globally
-		window.addEventListener('ln:pushstate', popstateHandler);
+		// Watch for URL changes via history.pushState (used by ln-ajax)
+		// We'll override pushState to detect URL changes
+		const originalPushState = history.pushState;
+		history.pushState = function() {
+			originalPushState.apply(history, arguments);
+			// Trigger update after pushState
+			links = Array.from(navElement.querySelectorAll('a'));
+			_updateActiveState(links, activeClass, window.location.pathname);
+		};
 
 		// Observe DOM changes within this nav element for dynamic links
 		const observer = new MutationObserver(function(mutations) {
