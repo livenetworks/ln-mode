@@ -97,6 +97,9 @@
 
 		element.classList.add('ln-ajax--loading');
 
+		// Store final URL for history (will be modified for GET with data)
+		let finalUrl = url;
+
 		// Extract CSRF token from meta tag
 		const csrfToken = document.querySelector('meta[name="csrf-token"]');
 		const token = csrfToken ? csrfToken.getAttribute('content') : null;
@@ -120,13 +123,17 @@
 			options.headers['X-CSRF-TOKEN'] = token;
 		}
 
-		// Add body to request
-		if (method !== 'GET' && data) {
+		// Handle request body/URL based on method
+		if (method === 'GET' && data) {
+			// For GET requests, append form data as query parameters
+			const params = new URLSearchParams(data);
+			finalUrl = url + (url.includes('?') ? '&' : '?') + params.toString();
+		} else if (method !== 'GET' && data) {
 			options.body = data;
 		}
 
 		// Make the fetch request and handle response
-		fetch(url, options)
+		fetch(finalUrl, options)
 			.then(response => response.json())
 			.then(data => {
 				// Update document title if provided
@@ -145,12 +152,15 @@
 					}
 				}
 
-				// Push to browser history only for links, not for form submissions
+				// Push to browser history for links and GET forms
 				if (element.tagName === 'A') {
 					let historyUrl = element.getAttribute('href');
 					if (historyUrl) {
 						window.history.pushState({ ajax: true }, '', historyUrl);
 					}
+				} else if (element.tagName === 'FORM' && element.method.toUpperCase() === 'GET') {
+					// For GET forms, push the URL with query parameters
+					window.history.pushState({ ajax: true }, '', finalUrl);
 				}
 
 				// Display message if present
