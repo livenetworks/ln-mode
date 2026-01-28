@@ -1,11 +1,11 @@
-﻿{
-    "version":  "1.0.0",
-    "name":  "ln-mode-components",
-    "description":  "Lightweight JavaScript components for LN Mode",
-    "scripts":  {
-                    "test":  "echo \"Error: no test specified\" \u0026\u0026 exit 1"
-                },
-    "author":  "",
-    "license":  "ISC",
-    "main":  "index.js"
+{
+  "version": "1.0.0",
+  "name": "ln-mode-components",
+  "description": "Lightweight JavaScript components for LN Mode",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "main": "index.js"
 }
